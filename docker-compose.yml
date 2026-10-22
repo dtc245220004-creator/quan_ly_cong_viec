@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  app:
+    build: ./app
+    networks:
+      - webnet
+      - dbnet
+    depends_on:
+      - db
+
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: StrongPassword123!
+      POSTGRES_DB: taskdb
+    networks:
+      - dbnet
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  pgadmin:
+    image: dpage/pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: StrongPassword123!
+    ports:
+      - "5050:80"
+    networks:
+      - dbnet
+
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    networks:
+      - webnet
+    depends_on:
+      - app
+
+networks:
+  webnet: # Nginx <-> App
+  dbnet:  # App <-> DB <-> pgAdmin
+
+volumes:
+  pgdata:
